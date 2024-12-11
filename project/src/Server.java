@@ -105,7 +105,7 @@ public class Server {
         }
 
         //写入文件
-        private void saveToFile(String data) {
+        private synchronized void saveToFile(String data) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true))) //创建一个文件写入流，true 表示追加模式，文件不存在时会自己创建
                     //bufferedWriter提供缓冲和更高效的写入方法
             {
@@ -117,7 +117,7 @@ public class Server {
         }
 
         //写入数据库
-        private void saveToDatabase(String data) {
+        private synchronized void saveToDatabase(String data) {
             try (Connection conn = DriverManager.getConnection(DB_URL)) {
                 String[] parts = data.split(",");
                 if (parts.length == 3) {
