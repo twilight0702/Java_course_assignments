@@ -15,14 +15,23 @@ public class Client {
 
             // 接收欢迎消息
             System.out.println("服务器: " + in.readLine());
-
-            // 从控制台输入时区信息
-            System.out.println("请输入时区信息（格式：城市名, 时区, 当前时间）：");
-            String clientData = consoleInput.readLine();
-            out.println(clientData);
-
-            // 接收确认消息
-            System.out.println("服务器: " + in.readLine());
+            while (true) {
+                // 从控制台输入时区信息
+                System.out.println("请输入时区信息（格式：城市名, 时区, 当前时间）：（输入exit退出）");
+                String clientData = consoleInput.readLine();//从控制台输入读一行数据
+                if (clientData.equals("exit"))
+                    break;
+                else {
+                    String[] datas = clientData.split(",");
+                    if (datas.length != 3)
+                        System.out.println("输入格式不正确，请重新输入！");
+                    else {
+                        out.println(clientData);
+                    }
+                }
+                // 接收确认消息
+                System.out.println("服务器: " + in.readLine());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
