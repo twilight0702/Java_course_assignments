@@ -9,3 +9,20 @@ public class Test {
         }
     }
 }
+
+class t1
+{
+    public static void main(String[] args)
+    {
+        Client.main(new String[0]);
+    }
+}
+
+
+class t2
+{
+    public static void main(String[] args)
+    {
+        Client.main(new String[0]);
+    }
+}

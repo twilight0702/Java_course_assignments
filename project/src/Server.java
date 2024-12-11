@@ -7,6 +7,7 @@ public class Server {
     private static final int PORT = 8080;//设置监听的端口
     private static final String FILE_NAME = "client_data.txt";
     private static final String DB_URL = "jdbc:sqlite:timezone.db";
+    private static int numberOfActiveClient=0;
 
     public static void main(String[] args) {
         initDatabase();
@@ -21,8 +22,10 @@ public class Server {
                 //没有客户端连接时，这一行代码会一直等待（阻塞），直到有客户端尝试连接。
                 // 当有客户端连接时，accept() 会返回一个新的 Socket 对象（clientSocket），用于与该客户端进行通信。
 
-                System.out.println("客户端连接: " + clientSocket.getInetAddress());//获取连接到服务器的客户端的IP地址。
-                new Thread(new ClientHandler(clientSocket)).start();//创建一个线程处理这个客户端，进入下一循环
+                int tempID=numberOfActiveClient++;
+
+                System.out.println("客户端连接: " + clientSocket.getInetAddress()+"，客户端ID: "+tempID);//获取连接到服务器的客户端的IP地址。
+                new Thread(new ClientHandler(clientSocket,tempID)).start();//创建一个线程处理这个客户端，进入下一循环
                 //传入一个实现了Runnable接口的类，start会自己运行这个类的run方法（是重写自Runnable的）
             }
         } catch (IOException e) {
@@ -60,9 +63,11 @@ public class Server {
     //用于多线程处理
     static class ClientHandler implements Runnable {
         private final Socket clientSocket;
+        private final int ID;
 
-        public ClientHandler(Socket clientSocket) {
+        public ClientHandler(Socket clientSocket,int id) {
             this.clientSocket = clientSocket;
+            ID=id;
         }
 
         @Override
@@ -72,16 +77,17 @@ public class Server {
             {
                 //注意两个端的收发要对应。如果一边发出，另一边没有接受，会进入缓冲区，直到缓冲区被占满，之后
                 //1.发送方被阻塞（TCP协议）；2.数据可能丢失（UDP协议）
-                out.println("欢迎连接到时区服务器，请发送您的时区信息：城市名, 时区, 当前时间");//向客户端发送
+                out.println("欢迎连接到时区服务器!");//向客户端发送
 
                 String clientData;
                 while ((clientData = in.readLine()) != null)//从客户端读一行数据，这个是阻塞方法会一直等待直到有数据。直接回车不是空，客户端关闭才是返回null
                 {
                     if (clientData.equals("exit")) {
-                        System.out.println("和客户端断开，结束交互");
+                        numberOfActiveClient--;
+                        System.out.printf("和ID为%S的客户端（%s）断开，结束交互\n",ID,clientSocket.getInetAddress());
                         break; // 结束当前客户端连接
                     }
-                    System.out.println("接收到来自客户端的数据: " + clientData);
+                    System.out.printf("接收到来自ID为%s的客户端的数据: %s\n" ,ID,clientData);
 
                     // 保存到本地文件
                     saveToFile(clientData);
@@ -119,18 +125,11 @@ public class Server {
                     String timezone = parts[1];
                     String currentTime = parts[2];
 
-                    for(String s: parts)
-                    {
-                        System.out.println(s);
-                    }
-
                     String insertSQL = "INSERT INTO timezone_info (city, timezone, time) VALUES (?, ?, ?)";//使用?占位符
                     try (PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
                         pstmt.setString(1, city);
                         pstmt.setString(2, timezone);
                         pstmt.setString(3, currentTime);
-                        System.out.println(pstmt);
-                        System.out.println(currentTime);
                         pstmt.executeUpdate();
                     }
                 }
