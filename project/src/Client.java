@@ -2,11 +2,39 @@ import java.io.*;
 import java.net.Socket;
 
 public class Client {
-    private static final String SERVER_HOST = "127.0.0.1"; // 替换为服务器IP
-    private static final int SERVER_PORT = 8080;
+    private String SERVER_HOST; // 替换为服务器IP
+    private int SERVER_PORT;
 
     public static void main(String[] args) {
-        try (Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
+        Client client = new Client();
+        try(BufferedReader input = new BufferedReader(new InputStreamReader(System.in)))
+        {
+            System.out.println("请输入服务器IP");
+            String tempHost = input.readLine();
+            if(tempHost.isEmpty())
+            {
+                client.SERVER_HOST = "127.0.0.1";
+            }
+            else
+            {
+                client.SERVER_HOST = tempHost;
+            }
+
+            System.out.println("请输入服务器端口号");
+            String tempPort = input.readLine();
+            if(tempPort.isEmpty())
+            {
+                client.SERVER_PORT = 8888;
+            }
+            else
+            {
+                client.SERVER_PORT = Integer.parseInt(tempPort);
+            }
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+
+        try (Socket socket = new Socket(client.SERVER_HOST, client.SERVER_PORT);
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in))) {
